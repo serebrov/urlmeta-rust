@@ -66,6 +66,7 @@ fn get_text(el: ElementRef) -> Option<String> {
 
 pub fn parse_page(html: &str) -> Metadata {
     let doc = Html::parse_document(&html);
+    println!("parsing the document");
 
     let result = Metadata {
         description: find(&doc, &[
