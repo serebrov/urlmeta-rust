@@ -55,7 +55,10 @@ fn find(doc: &Html, selectors: &[String]) -> String {
     for selector in selectors {
         let sel = Selector::parse(selector).unwrap();
         for el in doc.select(&sel) {
-            return String::from(el.value().attr("content").unwrap_or(""))
+            match el.value().attr("content") {
+                Some(value) => return String::from(value),
+                None => continue
+            };
         }
     }
     String::from("")
