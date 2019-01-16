@@ -6,7 +6,7 @@ Similar node.js service is [here](https://github.com/serebrov/urlmeta-nodejs).
 
 Run `cd app && cargo run`.
 
-Curl examples:
+Curl example:
 
 ```
 curl http://localhost:8000/url-parser\?target\=https://www.nytimes.com
