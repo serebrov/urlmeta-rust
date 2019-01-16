@@ -92,8 +92,9 @@ fn parse_page(html: &str) -> Metadata {
     result
 }
 
-fn greet_async(_req: HttpRequest) -> impl Future<Item=HttpResponse, Error=Error> {
-    let url = "https://www.nytimes.com/2018/10/01/opinion/justice-kavanaugh-recuse-himself.html";
+fn greet_async(req: HttpRequest) -> impl Future<Item=HttpResponse, Error=Error> {
+    let params = req.query();
+    let url = params.get("target").expect("The `target` parameter is not specified");
     fetch_page(url).and_then(|html| {
         let result = parse_page(&html);
         let body = serde_json::to_string(&result)?;
