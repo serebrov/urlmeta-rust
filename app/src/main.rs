@@ -14,6 +14,7 @@ use futures::{future::ok as fut_ok, Future};
 
 use scraper::Html;
 use scraper::Selector;
+use scraper::ElementRef;
 
 fn fetch_page(url: &str) -> impl Future<Item=String, Error=Error> {
     println!("fetch page: {}", url);
@@ -51,12 +52,29 @@ struct Metadata {
     video: String,
 }
 
-fn find(doc: &Html, selectors: &[&str]) -> String {
-    for selector in selectors {
-        let sel = Selector::parse(selector).unwrap();
+type RuleCallback = fn(el: ElementRef) -> Option<String>;
+
+struct Rule {
+    selector: String,
+    extract: RuleCallback,
+}
+
+// Define a method of the structure.
+impl Rule {
+    pub fn new(selector: &str, extract: RuleCallback) -> Rule {
+        Rule {
+            selector: String::from(selector),
+            extract,
+        }
+    }
+}
+
+fn find(doc: &Html, rules: &[Rule]) -> String {
+    for rule in rules {
+        let sel = Selector::parse(&rule.selector).unwrap();
         for el in doc.select(&sel) {
-            match el.value().attr("content") {
-                Some(value) => return String::from(value),
+            match (rule.extract)(el) {
+                Some(value) => return value,
                 None => continue
             };
         }
@@ -64,29 +82,43 @@ fn find(doc: &Html, selectors: &[&str]) -> String {
     String::from("")
 }
 
+fn get_content(el: ElementRef) -> Option<String> {
+    return match el.value().attr("content") {
+        Some(value) => Some(String::from(value)),
+        None => None
+    }
+}
+
+fn get_text(el: ElementRef) -> Option<String> {
+    return Some(el.inner_html());
+}
+
 fn parse_page(html: &str) -> Metadata {
     let doc = Html::parse_document(&html);
+
     let result = Metadata {
         description: find(&doc, &[
-            "meta[property=\"og:description\"]"
+            Rule::new(r#"meta[property="og:description"]"#, get_content),
+            Rule::new(r#"meta[name="description"]"#, get_content),
         ]),
         title: find(&doc, &[
-            "meta[property=\"og:title\"]"
+            Rule::new(r#"meta[property="og:title"]"#, get_content),
+            Rule::new("title", get_text)
         ]),
         locale: find(&doc, &[
-            "meta[property=\"og:locale\"]"
+            Rule::new(r#"meta[property="og:locale"]"#, get_content),
         ]),
         r#type: find(&doc, &[
-            "meta[property=\"og:type\"]"
+            Rule::new(r#"meta[property="og:type"]"#, get_content),
         ]),
         url: find(&doc, &[
-            "meta[property=\"og:url\"]"
+            Rule::new(r#"meta[property="og:url"]"#, get_content),
         ]),
         image: find(&doc, &[
-            "meta[property=\"og:image\"]"
+            Rule::new(r#"meta[property="og:image"]"#, get_content),
         ]),
         video: find(&doc, &[
-            "meta[property=\"og:video\"]"
+            Rule::new(r#"meta[property="og:video"]"#, get_content),
         ]),
     };
     result
@@ -102,8 +134,6 @@ fn greet_async(req: HttpRequest) -> impl Future<Item=HttpResponse, Error=Error> 
         Ok(HttpResponse::Ok()
             .content_type("application/json")
             .body(body))
-        // let resp = HttpResponse::Ok().body(result);
-        // Ok(resp.into())
     })
 }
 
