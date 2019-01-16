@@ -51,7 +51,7 @@ struct Metadata {
     video: String,
 }
 
-fn find(doc: &Html, selectors: &[String]) -> String {
+fn find(doc: &Html, selectors: &[&str]) -> String {
     for selector in selectors {
         let sel = Selector::parse(selector).unwrap();
         for el in doc.select(&sel) {
@@ -68,25 +68,25 @@ fn parse_page(html: &str) -> Metadata {
     let doc = Html::parse_document(&html);
     let result = Metadata {
         description: find(&doc, &[
-            String::from("meta[property=\"og:description\"]")
+            "meta[property=\"og:description\"]"
         ]),
         title: find(&doc, &[
-            String::from("meta[property=\"og:title\"]")
+            "meta[property=\"og:title\"]"
         ]),
         locale: find(&doc, &[
-            String::from("meta[property=\"og:locale\"]")
+            "meta[property=\"og:locale\"]"
         ]),
         r#type: find(&doc, &[
-            String::from("meta[property=\"og:type\"]")
+            "meta[property=\"og:type\"]"
         ]),
         url: find(&doc, &[
-            String::from("meta[property=\"og:url\"]")
+            "meta[property=\"og:url\"]"
         ]),
         image: find(&doc, &[
-            String::from("meta[property=\"og:image\"]")
+            "meta[property=\"og:image\"]"
         ]),
         video: find(&doc, &[
-            String::from("meta[property=\"og:video\"]")
+            "meta[property=\"og:video\"]"
         ]),
     };
     result
