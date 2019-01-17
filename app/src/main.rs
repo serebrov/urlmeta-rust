@@ -55,7 +55,7 @@ fn main() {
         App::new()
             .resource("/{name}", |r| r.with_async(greet_async))
     })
-    .bind("127.0.0.1:8000")
+    .bind("0.0.0.0:8000")
     .expect("Can not bind to port 8000")
     .run();
 }
